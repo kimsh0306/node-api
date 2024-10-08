@@ -5,14 +5,14 @@ const app = express();
 
 dbConnect();
 
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Hello, Node!");
 });
 
 // 미들웨어
 app.use(express.json()); // 바디파서
 app.use(express.urlencoded({ extended: true })); // 바디파서
-app.use("/api/users", require("./routes/userRoutes"));
+app.use("/users", require("./routes/userRoutes"));
 
 // app.listen(5000, () => {
 //   console.log("서버 실행 중");
