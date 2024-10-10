@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 // asyncHandler로 try catch 사용하지 않고 에러 체크
 const asyncHandler = require("express-async-handler");
 const User = require("../models/UserModel");
@@ -17,10 +18,31 @@ const createUser = asyncHandler(async (req, res) => {
     return res.send("필수 값이 입력되지 않았습니다.");
   };
 
+  const userExists = await User.findOne({ user_id });
+
+  if (userExists) {
+    return res.status(400).json({ message: '이미 존재하는 사용자입니다.' });
+  }
+
+  // 비밀번호 해시
+  const salt = await bcrypt.genSalt(10); // salt 생성
+  const hashedPassword = await bcrypt.hash(password, salt); // 비밀번호 해시
+
   const user = await User.create({
-    user_id, password, name, email
+    user_id, password: hashedPassword, name, email
   });
-  res.send("Create user");
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      user_id: user.user_id,
+      name: user.name,
+      email: user.email,
+      message: '회원가입이 완료되었습니다.',
+    });
+  } else {
+    res.status(400).json({ message: '회원가입에 실패했습니다.' });
+  }
 });
 
 // @desc Get user
