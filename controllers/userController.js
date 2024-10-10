@@ -86,10 +86,33 @@ const deleteUser = asyncHandler(async (req, res) => {
   res.send("Deleted");
 });
 
+// @desc Login
+// @route POST /users/login
+const login = asyncHandler(async (req, res) => {
+  const { user_id, password } = req.body;
+  if (!user_id || !password) {
+    return res.send("필수 값이 입력되지 않았습니다.");
+  };
+
+  const user = await User.findOne({ user_id });
+
+  if (user && (await bcrypt.compare(password, user.password))) {
+    // 패스워드 일치 시 성공 응답
+    res.json({
+      _id: user._id,
+      user_id: user.user_id,
+      // 추후에 JWT 토큰 등을 추가
+    });
+  } else {
+    res.status(401).json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' });
+  }
+});
+
 module.exports = {
   getAllUsers,
   createUser,
   getUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  login
 };
