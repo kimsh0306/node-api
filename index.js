@@ -7,7 +7,7 @@ dbConnect();
 
 // CORS 설정
 app.use(cors({
-  origin: 'http://localhost:3000', // 허용할 도메인
+  origin: ['http://172.20.10.4:3000', 'https://project-moview.vercel.app/'], // 허용할 도메인
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드
   credentials: true, // 쿠키 전송 허용
 }));
