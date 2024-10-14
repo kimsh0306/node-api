@@ -124,21 +124,21 @@ const getAllMovies = asyncHandler(async (req, res) => {
 // @desc Create my movie
 // @route POST /users/:id/my_movies
 const createMovie = asyncHandler(async (req, res) => {
-  const { movie_id, title, poster_path, adult, vote_average, genre_ids } = req.body;
+  const { id, title, poster_path, adult, vote_average, genre_ids } = req.body;
   const user = await User.findById(req.params.id);
 
   if (!user) {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
   }
 
-  const movieExists = user.my_lists.movies.find(movie => movie.movie_id === movie_id);
+  const movieExists = user.my_lists.movies.find(movie => movie.id === id);
 
   if (movieExists) {
     return res.status(400).json({ message: '이미 즐겨찾기에 등록된 영화입니다.' });
   }
 
   // 새로운 영화 추가
-  const newMovie = { movie_id, title, poster_path, adult, vote_average, genre_ids };
+  const newMovie = { id, title, poster_path, adult, vote_average, genre_ids };
   user.my_lists.movies.push(newMovie);
   await user.save();
 
@@ -146,17 +146,17 @@ const createMovie = asyncHandler(async (req, res) => {
 });
 
 // @desc Update my movie
-// @route PUT /users/:id/my_movies/:movie_id
+// @route PUT /users/:id/my_movies/:movieId
 const updateMovie = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  const { movie_id } = req.params;
+  const { movieId } = req.params;
   const { title, poster_path, adult, vote_average, genre_ids } = req.body;
 
   if (!user) {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
   }
 
-  const movie = user.my_lists.movies.find(movie => movie.movie_id === movie_id);
+  const movie = user.my_lists.movies.find(movie => movie.id === parseInt(movieId));
 
   if (!movie) {
     return res.status(404).json({ message: '해당 영화를 찾을 수 없습니다.' });
@@ -175,16 +175,16 @@ const updateMovie = asyncHandler(async (req, res) => {
 });
 
 // @desc Delete my movie
-// @route DELETE /users/:id/my_movies/:movie_id
+// @route DELETE /users/:id/my_movies/:movieId
 const deleteMovie = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  const { movie_id } = req.params;
+  const { movieId } = req.params;
 
   if (!user) {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
   }
 
-  const movieIndex = user.my_lists.movies.findIndex(movie => movie.movie_id === movie_id);
+  const movieIndex = user.my_lists.movies.findIndex(movie => movie.id === parseInt(movieId));
 
   if (movieIndex === -1) {
     return res.status(404).json({ message: '해당 영화를 찾을 수 없습니다.' });

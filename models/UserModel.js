@@ -22,7 +22,7 @@ const UserSchema = new Schema({
   my_lists: {
     movies: [
       {
-        movie_id: {
+        id: {
           type: Number,
           required: true,
         },
