@@ -6,7 +6,11 @@ const {
   getUser,
   updateUser,
   deleteUser,
-  login
+  login,
+  getAllMovies,
+  createMovie,
+  updateMovie,
+  deleteMovie
 } = require("../controllers/userController");
 
 router.route("/")
@@ -20,5 +24,11 @@ router.route("/:id")
 
 router.route("/login")
   .post(login);
+
+router.route("/:id/my_movies")
+  .get(getAllMovies)
+  .post(createMovie)
+  .put(updateMovie)
+  .delete(deleteMovie);
 
 module.exports = router;

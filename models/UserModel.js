@@ -19,6 +19,31 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  my_lists: {
+    movies: [
+      {
+        movie_id: {
+          type: Number,
+          required: true,
+        },
+        title: {
+          type: String,
+        },
+        poster_path: {
+          type: String,
+        },
+        adult: {
+          type: Boolean,
+        },
+        vote_average: {
+          type: Number,
+        },
+        genre_ids: {
+          type: [Number], // 배열 안에 숫자만 허용
+        },
+      },
+    ],
+  },
 },
   {
     timestamps: true

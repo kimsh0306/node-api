@@ -55,7 +55,6 @@ const getUser = asyncHandler(async (req, res) => {
 // @desc Update user
 // @route PUT /users/:id
 const updateUser = asyncHandler(async (req, res) => {
-  const id = req.params.id;
   const { user_id, password, name, email } = req.body
   const user = await User.findById(req.params.id);
   if (!user) {
@@ -101,11 +100,101 @@ const login = asyncHandler(async (req, res) => {
     res.json({
       _id: user._id,
       user_id: user.user_id,
+      my_lists: user.my_lists
       // 추후에 JWT 토큰 등을 추가
     });
   } else {
     res.status(401).json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' });
   }
+});
+
+// @desc Get all my movies
+// @route GET /users/:id/my_movies
+const getAllMovies = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+  }
+
+  // 사용자의 my_lists.movies 배열을 반환
+  res.json(user.my_lists.movies);
+});
+
+// @desc Create my movie
+// @route POST /users/:id/my_movies
+const createMovie = asyncHandler(async (req, res) => {
+  const { movie_id, title, poster_path, adult, vote_average, genre_ids } = req.body;
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+  }
+
+  const movieExists = user.my_lists.movies.find(movie => movie.movie_id === movie_id);
+
+  if (movieExists) {
+    return res.status(400).json({ message: '이미 즐겨찾기에 등록된 영화입니다.' });
+  }
+
+  // 새로운 영화 추가
+  const newMovie = { movie_id, title, poster_path, adult, vote_average, genre_ids };
+  user.my_lists.movies.push(newMovie);
+  await user.save();
+
+  res.status(201).json({ message: '영화가 성공적으로 추가되었습니다.', movie: newMovie });
+});
+
+// @desc Update my movie
+// @route PUT /users/:id/my_movies/:movie_id
+const updateMovie = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  const { movie_id } = req.params;
+  const { title, poster_path, adult, vote_average, genre_ids } = req.body;
+
+  if (!user) {
+    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+  }
+
+  const movie = user.my_lists.movies.find(movie => movie.movie_id === movie_id);
+
+  if (!movie) {
+    return res.status(404).json({ message: '해당 영화를 찾을 수 없습니다.' });
+  }
+
+  // 영화 정보 업데이트
+  movie.title = title || movie.title;
+  movie.poster_path = poster_path || movie.poster_path;
+  movie.adult = adult !== undefined ? adult : movie.adult;
+  movie.vote_average = vote_average || movie.vote_average;
+  movie.genre_ids = genre_ids || movie.genre_ids;
+
+  await user.save();
+
+  res.json({ message: '영화 정보가 성공적으로 업데이트되었습니다.', movie });
+});
+
+// @desc Delete my movie
+// @route DELETE /users/:id/my_movies/:movie_id
+const deleteMovie = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  const { movie_id } = req.params;
+
+  if (!user) {
+    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+  }
+
+  const movieIndex = user.my_lists.movies.findIndex(movie => movie.movie_id === movie_id);
+
+  if (movieIndex === -1) {
+    return res.status(404).json({ message: '해당 영화를 찾을 수 없습니다.' });
+  }
+
+  // 해당 영화 삭제
+  user.my_lists.movies.splice(movieIndex, 1);
+  await user.save();
+
+  res.json({ message: '영화가 성공적으로 삭제되었습니다.' });
 });
 
 module.exports = {
@@ -114,5 +203,9 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
-  login
+  login,
+  getAllMovies,
+  createMovie,
+  updateMovie,
+  deleteMovie,
 };
