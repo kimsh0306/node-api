@@ -38,8 +38,14 @@ const UserSchema = new Schema({
         vote_average: {
           type: Number,
         },
+        vote_count: {
+          type: Number,
+        },
+        popularity: {
+          type: Number,
+        },
         genre_ids: {
-          type: [Number], // 배열 안에 숫자만 허용
+          type: [Number],
         },
       },
     ],
