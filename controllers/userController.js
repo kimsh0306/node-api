@@ -146,17 +146,17 @@ const createMovie = asyncHandler(async (req, res) => {
 });
 
 // @desc Update my movie
-// @route PUT /users/:id/my_movies/:movieId
+// @route PUT /users/:id/my_movies/:movie_id
 const updateMovie = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  const { movieId } = req.params;
+  const { movie_id } = req.params;
   const { title, poster_path, adult, vote_average, genre_ids } = req.body;
 
   if (!user) {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
   }
 
-  const movie = user.my_lists.movies.find(movie => movie.id === parseInt(movieId));
+  const movie = user.my_lists.movies.find(movie => movie.id === parseInt(movie_id));
 
   if (!movie) {
     return res.status(404).json({ message: '해당 영화를 찾을 수 없습니다.' });
@@ -175,16 +175,16 @@ const updateMovie = asyncHandler(async (req, res) => {
 });
 
 // @desc Delete my movie
-// @route DELETE /users/:id/my_movies/:movieId
+// @route DELETE /users/:id/my_movies/:movie_id
 const deleteMovie = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
-  const { movieId } = req.params;
+  const { movie_id } = req.params;
 
   if (!user) {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
   }
 
-  const movieIndex = user.my_lists.movies.findIndex(movie => movie.id === parseInt(movieId));
+  const movieIndex = user.my_lists.movies.findIndex(movie => movie.id === parseInt(movie_id));
 
   if (movieIndex === -1) {
     return res.status(404).json({ message: '해당 영화를 찾을 수 없습니다.' });
