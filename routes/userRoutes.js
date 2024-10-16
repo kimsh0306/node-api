@@ -29,7 +29,7 @@ router.route("/login")
   .get(getAllMovies)
   .post(createMovie);
 
-router.route("/:id/my_movies/:movieId")
+router.route("/:id/my_movies/:movie_id")
   .put(updateMovie)
   .delete(deleteMovie);
 
