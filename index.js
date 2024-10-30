@@ -2,6 +2,7 @@ const express = require("express");
 const dbConnect = require("./config/dbConnect");
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const requireHttps = require('./middleware/requireHttps');
 const app = express();
 
 dbConnect();

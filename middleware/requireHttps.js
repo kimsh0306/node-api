@@ -1,4 +1,3 @@
-// middleware/requireHttps.js
 const requireHttps = (req, res, next) => {
   // 배포 환경에서만 HTTPS 강제
   if (process.env.NODE_ENV === "production" && !req.secure) {
