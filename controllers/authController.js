@@ -79,7 +79,7 @@ const login = asyncHandler(async (req, res) => {
       httpOnly: true,  // XSS 공격 방지
       secure: process.env.NODE_ENV === "production" ? true : false,
       domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
-      sameSite: "Lax", // 또는 "None" (필요한 경우)
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: '/',
       maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
     });
