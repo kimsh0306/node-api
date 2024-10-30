@@ -78,7 +78,7 @@ const login = asyncHandler(async (req, res) => {
     res.cookie("moview_token", token, {
       httpOnly: true,  // XSS 공격 방지
       secure: process.env.NODE_ENV === "production" ? true : false,
-      domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
+      // domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: '/',
       maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
