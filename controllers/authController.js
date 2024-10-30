@@ -38,10 +38,9 @@ const join = asyncHandler(async (req, res) => {
   res.cookie("moview_token", token, {
     httpOnly: true,  // XSS 공격 방지 (쿠키에 대한 JavaScript 접근을 제한)
     secure: process.env.NODE_ENV === "production" ? true : false,
-    domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
-    sameSite: "Lax", // 또는 "None" (필요한 경우)
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     path: '/',
-    maxAge: maxAge
+    maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
   });
 
   // 만료 시간 계산 (현재 시간 + maxAge)
@@ -76,9 +75,8 @@ const login = asyncHandler(async (req, res) => {
     const token = generateToken(user._id);
 
     res.cookie("moview_token", token, {
-      httpOnly: true,  // XSS 공격 방지
+      httpOnly: true,  // XSS 공격 방지 (쿠키에 대한 JavaScript 접근을 제한)
       secure: process.env.NODE_ENV === "production" ? true : false,
-      // domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: '/',
       maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
@@ -105,8 +103,7 @@ const logout = asyncHandler(async (req, res) => {
   res.clearCookie("moview_token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false,
-    domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
-    sameSite: "Lax",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     path: '/'
   });
 
@@ -124,13 +121,12 @@ const extendSession = asyncHandler(async (req, res) => {
     const token = generateToken(user._id);
 
     // 쿠키에 새 토큰 설정
-    res.cookie('moview_token', token, {
-      httpOnly: true,
+    res.cookie("moview_token", token, {
+      httpOnly: true,  // XSS 공격 방지 (쿠키에 대한 JavaScript 접근을 제한)
       secure: process.env.NODE_ENV === "production" ? true : false,
-      domain: process.env.NODE_ENV === "production" ? ".project-moview.vercel.app" : "localhost",
-      sameSite: "Lax",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       path: '/',
-      maxAge: maxAge
+      maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
     });
 
     // 새로운 만료 시간 계산
