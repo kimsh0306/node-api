@@ -4,7 +4,8 @@ const {
   join,
   login,
   logout,
-  extendSession
+  extendSession,
+  deleteAccount
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -19,5 +20,8 @@ router.route("/logout")
 
 router.route("/extend_session")
   .post(protect, extendSession);
+
+router.route("/delete_account")
+  .delete(protect, deleteAccount);
 
 module.exports = router;

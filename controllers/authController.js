@@ -6,6 +6,15 @@ const User = require("../models/UserModel");
 // 로그인 세션 유지 시간
 const maxAge = 60 * 60 * 1000;
 
+// 쿠키 설정
+const cookieOptions = {
+  httpOnly: true,  // XSS 공격 방지
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+  path: '/',
+  maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
+};
+
 // JWT 토큰 생성 함수
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -17,7 +26,7 @@ const join = asyncHandler(async (req, res) => {
   const { user_id, password, name, email } = req.body;
 
   if (!user_id || !password || !name || !email) {
-    return res.status(400).json("필수 값이 입력되지 않았습니다.");
+    return res.status(400).json({ message: "필수 값이 입력되지 않았습니다." });
   };
 
   const userExists = await User.findOne({ user_id });
@@ -34,14 +43,7 @@ const join = asyncHandler(async (req, res) => {
   });
 
   const token = generateToken(user._id);
-
-  res.cookie("moview_token", token, {
-    httpOnly: true,  // XSS 공격 방지 (쿠키에 대한 JavaScript 접근을 제한)
-    secure: process.env.NODE_ENV === "production" ? true : false,
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    path: '/',
-    maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
-  });
+  res.cookie("moview_token", token, cookieOptions);
 
   // 만료 시간 계산 (현재 시간 + maxAge)
   const expirationTime = Date.now() + maxAge;
@@ -54,7 +56,6 @@ const join = asyncHandler(async (req, res) => {
     });
   } else {
     console.error(error);
-    // 오류 발생 시 회원 정보 삭제
     await User.deleteOne({ user_id });
     res.status(400).json({ message: '회원가입에 실패했습니다.' });
   }
@@ -66,26 +67,18 @@ const login = asyncHandler(async (req, res) => {
   const { user_id, password } = req.body;
 
   if (!user_id || !password) {
-    return res.status(400).json("필수 값이 입력되지 않았습니다.");
+    return res.status(400).json({ message: "필수 값이 입력되지 않았습니다." });
   };
 
   const user = await User.findOne({ user_id });
   if (user && (await bcrypt.compare(password, user.password))) {
 
     const token = generateToken(user._id);
+    res.cookie("moview_token", token, cookieOptions);
 
-    res.cookie("moview_token", token, {
-      httpOnly: true,  // XSS 공격 방지 (쿠키에 대한 JavaScript 접근을 제한)
-      secure: process.env.NODE_ENV === "production" ? true : false,
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: '/',
-      maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
-    });
-
-    // 만료 시간 계산 (현재 시간 + maxAge)
     const expirationTime = Date.now() + maxAge;
 
-    res.json({
+    res.status(200).json({
       user_id: user.user_id,
       name: user.name,
       my_lists: user.my_lists,
@@ -99,13 +92,8 @@ const login = asyncHandler(async (req, res) => {
 // @desc Logout
 // @route POST /auth/logout
 const logout = asyncHandler(async (req, res) => {
-  // 쿠키 제거
-  res.clearCookie("moview_token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production" ? true : false,
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    path: '/'
-  });
+  const { maxAge, ...cookieOptionsWithoutMaxAge } = cookieOptions;
+  res.clearCookie("moview_token", cookieOptionsWithoutMaxAge);
 
   res.status(200).json({ message: "로그아웃되었습니다." });
 });
@@ -113,29 +101,33 @@ const logout = asyncHandler(async (req, res) => {
 // @desc Extend session
 // @route POST /auth/extend_session
 const extendSession = asyncHandler(async (req, res) => {
-  // 보호된 라우트이므로 미들웨어에서 사용자 인증이 이미 처리됨
   const user = req.user;
 
   if (user) {
-    // 새로운 JWT 토큰 생성
     const token = generateToken(user._id);
+    res.cookie("moview_token", token, cookieOptions);
 
-    // 쿠키에 새 토큰 설정
-    res.cookie("moview_token", token, {
-      httpOnly: true,  // XSS 공격 방지 (쿠키에 대한 JavaScript 접근을 제한)
-      secure: process.env.NODE_ENV === "production" ? true : false,
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: '/',
-      maxAge: maxAge,  // 쿠키 유효 시간 (1시간)
-    });
-
-    // 새로운 만료 시간 계산
     const expirationTime = Date.now() + maxAge;
 
-    // 새로운 만료 시간 반환
-    res.status(200).json({ exp: expirationTime });
+    res.status(200).json({ message: '세션 연장이 완료되었습니다.', exp: expirationTime });
   } else {
     res.status(401).json({ message: '세션 연장에 실패했습니다.' });
+  }
+});
+
+// @desc Delete Account
+// @route DELETE /auth/delete_account
+const deleteAccount = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  if (user) {
+    await User.findByIdAndDelete(user._id);
+    const { maxAge, ...cookieOptionsWithoutMaxAge } = cookieOptions;
+    res.clearCookie("moview_token", cookieOptionsWithoutMaxAge);
+
+    res.status(200).json({ message: "회원탈퇴가 완료되었습니다." });
+  } else {
+    res.status(401).json({ message: '회원탈퇴에 실패했습니다. 다시 시도해 주세요.' });
   }
 });
 
@@ -143,5 +135,6 @@ module.exports = {
   join,
   login,
   logout,
-  extendSession
+  extendSession,
+  deleteAccount
 };
